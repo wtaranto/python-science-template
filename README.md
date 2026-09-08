@@ -13,7 +13,7 @@
 
 ## Setup
 
-    make init      # rename PACKAGE, strip this notice, commit (run once)
+    make init      # rename PACKAGE, strip this notice, commit (run once per project)
     make setup     # create env, editable install, register kernel
     make check     # confirm imports resolve
 
