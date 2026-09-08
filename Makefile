@@ -12,7 +12,7 @@ init:
 	@test -f .template || { echo "already initialised ('.template' is gone)"; exit 1; }
 	@git rev-parse HEAD >/dev/null 2>&1 || { echo "need a git repo with one commit -- run: git init && git add -A && git commit -m init"; exit 1; }
 	@test "$$(git remote get-url origin 2>/dev/null)" != "$$(cat .template)" || { \
-		echo "still linked to the template -- detach first"; exit 1; }
+		echo "still linked to the template -- -- run: rm -rf .git && git init && git add -A && git commit -m init"; exit 1; }
 	@printf "package name (lowercase, digits, underscores): "; \
 	read n; \
 	echo "$$n" | grep -qE "^[a-z][a-z0-9_]*$$" || { echo "bad name"; exit 1; }; \
