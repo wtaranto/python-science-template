@@ -5,9 +5,6 @@ SOLVER := $(shell command -v mamba >/dev/null 2>&1 && echo mamba || echo conda)
 .PHONY: init setup update test lab check clean
 .DEFAULT_GOAL: check
 
-foo:
-	@printf "$(SOLVER)"
-
 init:
 	@test -f .template || { echo "already initialised ('.template' is gone)"; exit 1; }
 	@git rev-parse HEAD >/dev/null 2>&1 || { echo "need a git repo with one commit -- run: git init && git add -A && git commit -m init"; exit 1; }
