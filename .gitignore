@@ -1,5 +1,6 @@
 *.ipynb
 outputs/
+data/raw/
 __pycache__/
 *.egg-info/
 .ipynb_checkpoints/
