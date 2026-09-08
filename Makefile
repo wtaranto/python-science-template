@@ -25,6 +25,7 @@ setup:
 	$(SOLVER) run -n $(ENV) pip install -e .
 	$(SOLVER) run -n $(ENV) python -m ipykernel install --user --name $(ENV)
 	mkdir -p outputs
+	mkdir -p data
 
 update:
 	$(SOLVER) env update -f environment.yml --prune
