@@ -6,6 +6,19 @@ build-backend = "setuptools.build_meta"
 name = "PACKAGE"
 version = "0.1.0"
 requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "jupyterlab",
+    "jupytext",
+    "ipykernel",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

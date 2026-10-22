@@ -19,11 +19,10 @@
 
 ## On the cluster
 
-    <module load line goes here>
-    export PROJECT_DATA=/path/to/data
+    export RESEARCH_DATA=/path/to/data
     make setup
 
-Set `PROJECT_DATA` per machine. No literal data paths anywhere else.
+Set `RESEARCH_DATA` per machine (i.e. in a dotfiles). No literal data paths anywhere else.
 
 ## Commands
 
