@@ -1,9 +1,13 @@
 <!-- TEMPLATE:START -->
-> **This is a template repo.** Clone it, detach git, then run `make init`:
+> **This is a template repo.** Clone it, then run the three commands below.
+> `RUN_MAKE_INIT` in the repo root is the reminder that none of them have
+> run yet; `make init` deletes it.
 >
 >     git clone --depth 1 <this-url> newproj
->     cd newproj && rm -rf .git && git init && git add -A && git commit -m init
->     make init && make setup
+>     cd newproj
+>     make detach    # drop template history, start this repo's own
+>     make init      # rename PACKAGE, offer to link storage
+>     make setup
 >
 > Improve the template by editing it here and committing. Existing projects
 > don't receive updates — each repo is a snapshot at creation time.
@@ -19,6 +23,7 @@ Needs [uv](https://docs.astral.sh/uv/) only — no conda, no system Python:
 
 Then:
 
+    make detach    # drop the template's git history (run once, first)
     make init      # rename PACKAGE, commit, offer to link storage (run once)
     make setup     # create .venv, install deps, register jupyter kernel
     make check     # show where DATA / OUT / REPORTS resolved

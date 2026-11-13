@@ -1,11 +1,32 @@
 ENV := PACKAGE
 
-.PHONY: init setup link check sync clean
+.PHONY: detach init setup link check sync clean
 .DEFAULT_GOAL := check
 
-# Run once in a repo made from the template. Guarded by .template.
+# Drop the template's git history and start this repo's own.
+# Guarded by RUN_MAKE_INIT (absent in a real project) plus a confirmation,
+# because this deletes .git irreversibly.
+detach:
+	@test -f RUN_MAKE_INIT || { echo "no RUN_MAKE_INIT here -- this is not an uninitialised template clone; refusing"; exit 1; }
+	@git rev-parse --git-dir >/dev/null 2>&1 || { echo "not a git repository -- nothing to detach"; exit 1; }
+	@o=$$(git remote get-url origin 2>/dev/null); \
+	test -n "$$o" || { echo "no origin remote -- already detached, or never cloned; refusing"; exit 1; }; \
+	echo "This will DELETE .git and start fresh history."; \
+	echo "  current origin: $$o"; \
+	echo "  commits to be discarded: $$(git rev-list --count HEAD 2>/dev/null)"; \
+	printf "proceed? [y/N] "; \
+	read a; \
+	case "$$a" in [yY]*) ;; *) echo "aborted"; exit 1 ;; esac; \
+	rm -rf .git; \
+	git init -q; \
+	git add -A; \
+	git commit -qm "init from template"; \
+	git branch -M main; \
+	echo "detached -- now run: make init"
+
+# Run once in a repo made from the template. Guarded by RUN_MAKE_INIT.
 init:
-	@test -f .template || { echo "already initialised (.template is gone)"; exit 1; }
+	@test -f RUN_MAKE_INIT || { echo "already initialised (RUN_MAKE_INIT is gone)"; exit 1; }
 	@git rev-parse HEAD >/dev/null 2>&1 || { echo "need a git repo with one commit -- run: git init && git add -A && git commit -m init"; exit 1; }
 	@git remote get-url origin 2>/dev/null | grep -qi template && { echo "still linked to the template (origin: $$(git remote get-url origin))"; echo "detach first:  rm -rf .git && git init && git add -A && git commit -m init"; exit 1; } || true
 	@printf "package name (lowercase, digits, underscores): "; \
@@ -14,7 +35,7 @@ init:
 	git mv src/PACKAGE src/$$n; \
 	perl -pi -e "s/PACKAGE/$$n/g" pyproject.toml Makefile README.md; \
 	perl -0pi -e "s/<!-- TEMPLATE:START -->.*?<!-- TEMPLATE:END -->\n*//s" README.md; \
-	git rm -q .template; \
+	git rm -q RUN_MAKE_INIT; \
 	git add -A && git commit -qm "init $$n from template"; \
 	echo "initialised as $$n"
 	@if test -n "$$RESEARCH_STORAGE"; then \
