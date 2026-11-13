@@ -1,31 +1,37 @@
 """Machine-independent paths.
 
-One environment variable, $RESEARCH_STORAGE, holds every project's storage:
+Bulk lives outside the repo; keepers live inside it.
+
+$RESEARCH_STORAGE holds the bulk for every project:
 
     $RESEARCH_STORAGE/
     |-- <pkg>/           this project, named after the package
     |   |-- data/        inputs
-    |   |-- outputs/     disposable; regenerable from configs/ + a git SHA
-    |   `-- reports/     curated figures worth sharing or keeping
+    |   `-- outputs/     disposable; regenerable from configs/ + a git SHA
     `-- other_project/
         `-- ...
 
-So one project's storage is one directory: easy to archive, delete or
-measure (`du -sh $RESEARCH_STORAGE/*`) when the project is finished.
+One project's bulk is one directory: easy to archive, delete or measure
+(`du -sh $RESEARCH_STORAGE/*`) when the project is finished.
 
-Resolution, for NAME in DATA / OUTPUT / REPORTS:
+DATA and OUT resolve, for NAME in DATA / OUTPUT:
 
   1. $<PKG>_<NAME>                 one destination somewhere unusual
   2. $RESEARCH_STORAGE/<pkg>/<dir>  the normal case
   3. <repo>/<dir>                   fallback, or what a symlink points from
 
 Tier 1 is the escape hatch for a cluster where inputs live on a read-only
-shared mount while outputs go to scratch -- the one case a single root
-can't express. Tier 3 means `make link` and plain local use both work.
+shared mount while outputs go to scratch.
+
+REPORTS is different and deliberately NOT routed through
+$RESEARCH_STORAGE: it is always <repo>/reports, because it is tracked by
+git, and git cannot follow a symlink or track anything outside the repo.
+$<PKG>_REPORTS still overrides it, but doing so gives up version control
+over the figures.
 
   DATA     inputs; read-only as far as this code is concerned
-  OUT      disposable
-  REPORTS  keepers
+  OUT      disposable, outside the repo
+  REPORTS  keepers, inside the repo and committed
 
 No literal paths belong anywhere else in the codebase.
 
@@ -63,7 +69,15 @@ def _resolve(name: str, dirname: str) -> tuple[Path, str]:
 
 DATA, DATA_VIA = _resolve("DATA", "data")
 OUT, OUT_VIA = _resolve("OUTPUT", "outputs")
-REPORTS, REPORTS_VIA = _resolve("REPORTS", "reports")
+
+# Tracked, so it must stay inside the repo. $RESEARCH_STORAGE is not
+# consulted -- see the note above.
+if os.environ.get(f"{PKG.upper()}_REPORTS"):
+    REPORTS = Path(os.environ[f"{PKG.upper()}_REPORTS"])
+    REPORTS_VIA = f"${PKG.upper()}_REPORTS (NOT tracked by git)"
+else:
+    REPORTS = ROOT / "reports"
+    REPORTS_VIA = "<repo>/reports (tracked)"
 
 # Env var names, for error messages and `make check`.
 DATA_ENV = f"{PKG.upper()}_DATA"

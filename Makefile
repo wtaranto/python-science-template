@@ -39,7 +39,7 @@ init:
 	git add -A && git commit -qm "init $$n from template"; \
 	echo "initialised as $$n"
 	@if test -n "$$RESEARCH_STORAGE"; then \
-	printf "link data/ outputs/ reports/ into \$$RESEARCH_STORAGE? [y/N] "; \
+	printf "link data/ and outputs/ into \$$RESEARCH_STORAGE? [y/N] "; \
 	read a; \
 	case "$$a" in [yY]*) $(MAKE) --no-print-directory link ;; *) echo "  skipped -- run 'make link' any time" ;; esac; \
 	else echo "  (\$$RESEARCH_STORAGE not set -- skipping link step)"; fi
@@ -49,11 +49,12 @@ setup:
 	uv sync
 	uv run python -m ipykernel install --user --name $(ENV)
 
-# Symlink data/ outputs/ reports/ into $RESEARCH_STORAGE/<pkg>/.
-# Safe to re-run: skips anything already linked or non-empty.
+# Symlink data/ and outputs/ into $RESEARCH_STORAGE/<pkg>/.
+# reports/ is deliberately NOT linked: it is tracked, and git cannot follow
+# a symlink. Safe to re-run: skips anything already linked or non-empty.
 link:
 	@test -n "$$RESEARCH_STORAGE" || { echo "\$$RESEARCH_STORAGE is not set -- nothing to link"; exit 1; }
-	@for d in data outputs reports; do \
+	@for d in data outputs; do \
 	tgt="$$RESEARCH_STORAGE/$(ENV)/$$d"; \
 	if test -L "$$d"; then echo "  ok    $$d/    -> $$(readlink $$d)"; continue; fi; \
 	if test -d "$$d" && test -n "$$(ls -A $$d 2>/dev/null)"; then \
@@ -62,10 +63,6 @@ link:
 	if test -d "$$d"; then rmdir "$$d"; fi; \
 	ln -s "$$tgt" "$$d"; \
 	echo "  link  $$d/    -> $$tgt"; \
-	if test "$$d" = reports; then \
-	echo "        note: reports/ is tracked by default. Linked out of the"; \
-	echo "        repo its contents are NOT in git -- add /reports/ to"; \
-	echo "        .gitignore if that's what you want."; fi; \
 	done
 
 # Prints where DATA/OUT/REPORTS resolved -- run this first when a path is wrong.

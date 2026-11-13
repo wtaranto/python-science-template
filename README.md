@@ -30,51 +30,53 @@ Then:
 
 ## Where data and output live
 
-One variable, `$RESEARCH_STORAGE`, holds every project's storage:
+**Bulk lives outside the repo; keepers live inside it.**
+
+`$RESEARCH_STORAGE` holds the bulk for every project:
 
     $RESEARCH_STORAGE/
     |-- PACKAGE/
     |   |-- data/        inputs
-    |   |-- outputs/     disposable; regenerable from configs/ + a git SHA
-    |   `-- reports/     curated figures worth sharing or keeping
+    |   `-- outputs/     disposable; regenerable from configs/ + a git SHA
     `-- other_project/
         `-- ...
 
-One project's storage is one directory, so finishing a project means one
-`tar`, and `du -sh $RESEARCH_STORAGE/*` tells you what is eating your quota.
+One project's bulk is one directory, so finishing a project means one
+`tar`, and `du -sh $RESEARCH_STORAGE/*` tells you what is eating quota.
 
 Set it once per machine:
 
     export RESEARCH_STORAGE=$HOME/research        # laptop
     export RESEARCH_STORAGE=/scratch/you/research # cluster
 
-`paths.py` exposes the three as `DATA`, `OUT`, `REPORTS`. Resolution order
-for each, where NAME is `DATA` / `OUTPUT` / `REPORTS`:
+`paths.py` exposes three names:
 
-1. `$PACKAGE_<NAME>` — one destination somewhere unusual
-2. `$RESEARCH_STORAGE/PACKAGE/<dir>` — the normal case
-3. `<repo>/<dir>` — fallback, or what a symlink points away from
+- `DATA` → inputs. Gitignored.
+- `OUT` → `outputs/`. Disposable, regenerable, gitignored, wiped by
+  `make clean`.
+- `REPORTS` → `reports/`. Curated figures, **tracked by git**.
 
-Tier 1 is the escape hatch for a cluster where inputs sit on a read-only
-shared mount while outputs go to scratch — the one case a single root can't
-express. `make check` prints which tier won for each.
+`DATA` and `OUT` resolve in order: `$PACKAGE_DATA` / `$PACKAGE_OUTPUT`, then
+`$RESEARCH_STORAGE/PACKAGE/<dir>`, then `<repo>/<dir>`. The first is the
+escape hatch for a cluster where inputs sit on a read-only shared mount
+while outputs go to scratch.
+
+**`REPORTS` is deliberately not routed through `$RESEARCH_STORAGE`.** It is
+always `<repo>/reports`, because git cannot follow a symlink or track
+anything outside the repo — put figures in storage and they are no longer
+versioned. `$PACKAGE_REPORTS` overrides it if you really want that, and
+`make check` says so explicitly when it is in effect.
 
 ### Linking
 
-`make link` symlinks `data/`, `outputs/` and `reports/` into
-`$RESEARCH_STORAGE/PACKAGE/`, creating the directories if needed:
+`make link` symlinks `data/` and `outputs/` into
+`$RESEARCH_STORAGE/PACKAGE/`, creating the directories as needed:
 
     make link        # offered by `make init`, or run any time
 
-Safe to re-run: skips anything already linked, and refuses to touch a
-directory that exists and has contents.
-
-**One caveat on linking `reports/`.** It is tracked by default, so pointing
-it outside the repo means its contents are no longer in git — only the
-symlink gets committed, and an absolute path in git is wrong on the other
-machine. If you link it, add `/reports/` to `.gitignore` and accept that
-figures live outside version control. To keep them tracked, leave
-`reports/` a real directory and link only `data/` and `outputs/`.
+`reports/` is never linked, for the reason above. Linking is safe to re-run:
+it skips anything already linked and refuses to touch a directory that
+exists and has contents.
 
 ### Writing
 
@@ -101,7 +103,7 @@ versions. For a batch job that doesn't need Jupyter: `uv sync --no-dev`.
 
 ## Commands
 
-    make link      # symlink data/ outputs/ reports/ into $RESEARCH_STORAGE
+    make link      # symlink data/ and outputs/ into $RESEARCH_STORAGE
     make sync      # reconcile jupytext notebook pairs before committing
     make clean     # wipe outputs/ (leaves reports/ alone) and caches
 
@@ -123,7 +125,7 @@ Everything else runs through `uv` directly, no wrapper needed:
 - `src/PACKAGE/paths.py` — the only place literal paths live.
 - `tests/` — mirrors sturdy only. Scratch has no tests by definition.
 - `data/`, `outputs/` — gitignored; usually symlinks (`make link`).
-- `reports/` — tracked by default. See the caveat above if you link it.
+- `reports/` — tracked, always inside the repo, never linked.
 
 ## Promotion: scratch -> sturdy
 
