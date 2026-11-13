@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PACKAGE"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "jupyterlab",
+    "jupyter-server",
+    "jupytext",
+    "ipykernel",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.jupytext]
+formats = "ipynb,py:percent"
