@@ -1,0 +1,21 @@
+# notebooks: the jupytext .py pair is the source of truth
+*.ipynb
+.ipynb_checkpoints/
+
+# disposable / machine-local. No trailing slash: these may be symlinks
+# (see `make link`), and a trailing slash matches directories only.
+/data
+/outputs
+
+# env / tooling
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+
+# bulk data guard: stops a stray multi-GB file entering history.
+# If you commit a small test fixture in one of these formats, add an
+# exception below it, e.g.  !tests/data/*.nc
+*.nc
+*.h5
+*.cdf
