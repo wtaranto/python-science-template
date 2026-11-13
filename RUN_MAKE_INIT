@@ -1,0 +1,8 @@
+This repo is still the unmodified template.
+
+    make detach    # drop the template's git history, start this repo's own
+    make init      # rename the package, remove this file, commit
+    make setup     # create .venv, install deps, register a jupyter kernel
+
+Both `detach` and `init` refuse to run once this file is gone, so its
+presence is the signal that neither has happened yet.
